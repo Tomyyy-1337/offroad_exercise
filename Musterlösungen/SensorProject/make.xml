@@ -4,6 +4,7 @@
     <sources>
       pMyProject.cpp
       mFakeSensor.cpp
+      mFrequencyEstimator.cpp
     </sources>
   </finrocprogram>
 </targets>

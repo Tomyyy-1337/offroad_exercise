@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <targets>
-  <finrocprogram name="SensorProject">
+  <finrocprogram name="CollisonAvoidanceProject">
     <sources>
       pMyProject.cpp
-      mFakeSensor.cpp
+      mSimulation.cpp
+      mbbDriveToGoal.cpp
+      mbbAvoidObstacles.cpp
     </sources>
   </finrocprogram>
 </targets>

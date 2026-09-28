@@ -1,4 +1,5 @@
 #include "plugins/structure/default_main_wrapper.h"
+#include "plugins/ib2c/mbbFusion.h"
 #include "projects/CollisonAvoidanceProject/mSimulation.h"
 
 const std::string cPROGRAM_DESCRIPTION = "Starts MyProject.";
