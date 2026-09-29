@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<targets>
+  <finrocprogram name="PointcloudProject">
+    <sources>
+      pMyProject.cpp
+      mSimulation.cpp
+      mPointcloudToHeightMap.cpp
+      mVirtualDistanceSensor.cpp
+      mbbDriveToPoint.cpp
+      mbbAvoidObstacles.cpp
+    </sources>
+  </finrocprogram>
+</targets>
