@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<targets>
+  <finrocprogram name="SensorProject">
+    <sources>
+      pMyProject.cpp
+      mFakeSensor.cpp
+    </sources>
+  </finrocprogram>
+</targets>
