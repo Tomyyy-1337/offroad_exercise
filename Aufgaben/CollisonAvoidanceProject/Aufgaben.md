@@ -12,4 +12,4 @@
 - Schaue dir den Visualization Port des Moduls mSimulation in finstruct an.
 - Erstelle in fingui ein Joystick-Widget und verbinde es mit den Input Ports des Moduls mSimulation. Das Dreieck sollte sich nun bewegen lassen. Ziel ist es das Dreieck zum gelben Kreis zu bewegen, ohne dass es mit den roten Kreisen kollidiert.
 - Schreibe Module um das Dreieck zum Ziel zu steuern. Die Simulation stellt die Distanz zum Ziel, den Winkel zum Ziel und die Distanz zu Hindernissen als output ports bereit. Nutze diese Werte um Hindernisse zu vermeiden und das Ziel zu erreichen.
-    - Halte Module so einfach wie möglich. Löse die Aufgabe liber mit mehreren einfachen Modulen als mit einem komplexen Modul.
+    - Halte Module so einfach wie möglich. Löse die Aufgabe lieber mit mehreren einfachen Modulen als mit einem komplexen Modul.
