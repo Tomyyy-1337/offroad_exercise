@@ -10,7 +10,7 @@
 
 
 # Aufgabe 1
-- Create a height map from the pointcloud using the tGridAspectMap class. You can use the GridmapPainter class to visualize the map.
+- Erstelle eine Höhenkarte aus der Punktwolke mit der Klasse `tGridAspectMap`. Du kannst die Klasse `GridmapPainter` verwenden, um die Karte zu visualisieren.
 
 ```cpp
 // Beispielcode zur Visualisierung der Höhenkarte
@@ -28,4 +28,4 @@ vis_height_map_2D.Publish(canvas);
 ```
 
 # Aufgabe 2
-- The `mSimulation` module provides a pointcloud, the position of the triangle, and the position of the goal as outputs. Use the `in_velocity` and `in_steering` inputs to move the triangle towards the goal while avoiding collisions with the trees.
+- Das Modul `mSimulation` gibt eine Pointcloud , die Position des Dreiecks sowie die Position des Ziels als Ausgänge aus. Nutze die `in_velocity` und `in_steering` Eingänge, um das Dreieck zum Ziel zu bewegen und Kollisionen mit den Bäumen zu vermeiden.
