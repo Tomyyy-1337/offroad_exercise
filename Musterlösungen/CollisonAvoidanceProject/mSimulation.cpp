@@ -9,8 +9,9 @@
 //----------------------------------------------------------------------
 #include "projects/CollisonAvoidanceProject/mSimulation.h"
 #include <algorithm>
-#include <array>
 #include <cmath>
+#include <cstdint>
+#include <vector>
 
 namespace
 {
@@ -21,8 +22,10 @@ constexpr float kWheelBase = 0.12f;
 constexpr float kMaxSteeringAngle = 0.8f;
 constexpr float kCameraZoom = 3.5f;
 constexpr float kObstacleRadius = 0.09f;
-constexpr float kTargetX = 3.00f;
-constexpr float kTargetY = 0.50f;
+constexpr float kObstacleGenerationRadius = 5.0f;
+constexpr float kObstacleGridSpacing = 0.26f;
+constexpr float kTargetX = 6.00f;
+constexpr float kTargetY = 4.50f;
 constexpr float kTargetRadius = 0.05f;
 constexpr float kStartX = 0.42f;
 constexpr float kStartY = 0.5f;
@@ -178,46 +181,62 @@ float CalculateGoalDirection(float position_x, float position_y, float orientati
   return NormalizeAngle(target_heading - orientation);
 }
 
-constexpr std::array<tObstacle, 36> kObstacles = {{
-  {0.24f, 0.18f},
-  {0.41f, 0.73f},
-  {0.53f, 0.29f},
-  {0.67f, 0.58f},
-  {0.79f, 0.14f},
-  {0.95f, 0.82f},
-  {1.07f, 0.37f},
-  {1.21f, 0.66f},
-  {1.34f, 0.23f},
-  {1.47f, 0.52f},
-  {1.62f, 0.11f},
-  {1.75f, 0.71f},
-  {1.88f, 0.34f},
-  {2.01f, 0.86f},
-  {2.14f, 0.48f},
-  {2.27f, 0.17f},
-  {2.38f, 0.63f},
-  {2.52f, 0.28f},
-  {2.64f, 0.76f},
-  {2.78f, 0.41f},
-  {2.88f, 0.95f},
-  {2.90f, 0.14f},
-  {3.08f, 0.88f},
-  {3.18f, 0.19f},
-  {3.36f, 0.73f},
-  {2.48f, 0.16f},
-  {2.66f, 0.82f},
-  {2.86f, 0.28f},
-  {3.06f, 0.74f},
-  {3.28f, 0.12f},
-  {3.50f, 0.66f},
-  {3.72f, 0.34f},
-  {3.94f, 0.88f},
-  {4.16f, 0.20f},
-  {4.38f, 0.58f},
-  {4.60f, 0.42f}
-}};
+uint32_t ObstacleHash(int cell_x, int cell_y)
+{
+  uint32_t hash = static_cast<uint32_t>(cell_x) * 0x9e3779b9u;
+  hash ^= static_cast<uint32_t>(cell_y) + 0x85ebca6bu + (hash << 6) + (hash >> 2);
+  hash ^= hash >> 16;
+  hash *= 0x7feb352du;
+  hash ^= hash >> 15;
+  hash *= 0x846ca68bu;
+  return hash ^ (hash >> 16);
+}
 
-tObstacleRayHit FindNextObstacle(float front_x, float front_y, float orientation)
+std::vector<tObstacle> GenerateObstacles(float position_x, float position_y)
+{
+  const int minimum_cell_x = static_cast<int>(std::floor((position_x - kObstacleGenerationRadius) / kObstacleGridSpacing));
+  const int maximum_cell_x = static_cast<int>(std::floor((position_x + kObstacleGenerationRadius) / kObstacleGridSpacing));
+  const int minimum_cell_y = static_cast<int>(std::floor((position_y - kObstacleGenerationRadius) / kObstacleGridSpacing));
+  const int maximum_cell_y = static_cast<int>(std::floor((position_y + kObstacleGenerationRadius) / kObstacleGridSpacing));
+
+  std::vector<tObstacle> obstacles;
+  obstacles.reserve(static_cast<std::size_t>((maximum_cell_x - minimum_cell_x + 1) *
+                                              (maximum_cell_y - minimum_cell_y + 1) / 3));
+
+  for (int cell_y = minimum_cell_y; cell_y <= maximum_cell_y; ++cell_y)
+  {
+    for (int cell_x = minimum_cell_x; cell_x <= maximum_cell_x; ++cell_x)
+    {
+      const uint32_t hash = ObstacleHash(cell_x, cell_y);
+      if (hash % 5u != 0u)
+      {
+        continue;
+      }
+
+      const float offset_x = (static_cast<float>((hash >> 8) & 0xffu) / 255.0f - 0.5f) * 0.30f;
+      const float offset_y = (static_cast<float>((hash >> 16) & 0xffu) / 255.0f - 0.5f) * 0.30f;
+      const float obstacle_x = (static_cast<float>(cell_x) + 0.5f) * kObstacleGridSpacing + offset_x;
+      const float obstacle_y = (static_cast<float>(cell_y) + 0.5f) * kObstacleGridSpacing + offset_y;
+
+      if (DistanceSquared(position_x, position_y, obstacle_x, obstacle_y) >
+            kObstacleGenerationRadius * kObstacleGenerationRadius ||
+          DistanceSquared(kStartX, kStartY, obstacle_x, obstacle_y) <
+            (kObstacleRadius + kTriangleLength) * (kObstacleRadius + kTriangleLength) ||
+          DistanceSquared(kTargetX, kTargetY, obstacle_x, obstacle_y) <
+            (kObstacleRadius + kTargetRadius) * (kObstacleRadius + kTargetRadius))
+      {
+        continue;
+      }
+
+      obstacles.push_back({obstacle_x, obstacle_y});
+    }
+  }
+
+  return obstacles;
+}
+
+tObstacleRayHit FindNextObstacle(float front_x, float front_y, float orientation,
+                                  const std::vector<tObstacle> &obstacles)
 {
   const float direction_x = std::cos(orientation);
   const float direction_y = std::sin(orientation);
@@ -225,7 +244,7 @@ tObstacleRayHit FindNextObstacle(float front_x, float front_y, float orientation
   tObstacleRayHit best_hit{false, 0.0f, 0.0f, 0.0f};
   float best_distance = 0.0f;
 
-  for (const auto &obstacle : kObstacles)
+  for (const auto &obstacle : obstacles)
   {
     const float ox = front_x - obstacle.x;
     const float oy = front_y - obstacle.y;
@@ -324,6 +343,7 @@ void mSimulation::OnParameterChange()
 void mSimulation::Update()
 {
   bool collision = false;
+  const std::vector<tObstacle> obstacles = GenerateObstacles(position_x, position_y);
   tTriangleVertices triangle = CalculateTriangleVertices(position_x, position_y, orientation);
 
   if (!finished)
@@ -369,7 +389,7 @@ void mSimulation::Update()
     orientation = NormalizeAngle(orientation);
     triangle = CalculateTriangleVertices(position_x, position_y, orientation);
 
-    for (const auto &obstacle : kObstacles)
+    for (const auto &obstacle : obstacles)
     {
       if (TriangleIntersectsObstacle(triangle.p1_x, triangle.p1_y,
                                      triangle.p2_x, triangle.p2_y,
@@ -410,11 +430,11 @@ void mSimulation::Update()
   }
 
   const tTriangleVertices rendered_triangle = CalculateTriangleVertices(position_x, position_y, orientation);
-  const tObstacleRayHit next_obstacle_center = FindNextObstacle(position_x, position_y, orientation);
+  const tObstacleRayHit next_obstacle_center = FindNextObstacle(position_x, position_y, orientation, obstacles);
   const tObstacleRayHit next_obstacle_left_edge = FindNextObstacle(rendered_triangle.p2_x, rendered_triangle.p2_y,
-                                                                    orientation + kOuterSensorAngle);
+                                                                    orientation + kOuterSensorAngle, obstacles);
   const tObstacleRayHit next_obstacle_right_edge = FindNextObstacle(rendered_triangle.p3_x, rendered_triangle.p3_y,
-                                                                     orientation - kOuterSensorAngle);
+                                                                     orientation - kOuterSensorAngle, obstacles);
 
   out_next_obstacle_distance_center.Publish(next_obstacle_center.found ? next_obstacle_center.distance : 0.0f);
   out_next_obstacle_distance_left_edge.Publish(next_obstacle_left_edge.found ? next_obstacle_left_edge.distance : 0.0f);
@@ -434,7 +454,7 @@ void mSimulation::Update()
   canvas->SetColor(220, 80, 60);
   canvas->SetFill(true);
 
-  for (const auto &obstacle : kObstacles)
+  for (const auto &obstacle : obstacles)
   {
     canvas->DrawEllipsoid(obstacle.x, obstacle.y, kObstacleRadius * 2.0f, kObstacleRadius * 2.0f);
   }

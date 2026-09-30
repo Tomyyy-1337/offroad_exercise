@@ -37,5 +37,4 @@ void CreateMainGroup(const std::vector<std::string>& remaining_arguments)
   steering_fusion->InputAt(0).data.ConnectTo(avoid_obstacles->out_steering);
   steering_fusion->InputAt(1).data.ConnectTo(drive_to_goal->out_steering);
   steering_fusion->Output().ConnectTo(simulation->in_steering);
-
 }

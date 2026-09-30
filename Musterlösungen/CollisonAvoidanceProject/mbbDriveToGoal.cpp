@@ -57,13 +57,6 @@ bool mbbDriveToGoal::ProcessTransferFunction()
 
   const float goal_distance = std::max(0.0f, in_goal_distance.Get());
   const float goal_direction = in_goal_direction.Get();
-  
-  if (goal_distance <= kGoalTolerance)
-  {
-    out_velocity.Publish(0.0f);
-    out_steering.Publish(0.0f);
-    return true;
-  }
 
   const float velocity = std::min(kMaximumVelocity, goal_distance);
 

@@ -72,8 +72,6 @@ bool mbbAvoidObstacles::ProcessTransferFunction()
   const float left_threat = Threat(in_next_obstacle_distance_left_edge.Get());
   const float right_threat = Threat(in_next_obstacle_distance_right_edge.Get());
 
-  // Positive steering turns the simulated triangle right. Repulsive steering
-  // therefore turns right when the left side is more obstructed, and vice versa.
   float avoidance = left_threat - right_threat;
 
   if (front_threat > 0.0f)
@@ -81,8 +79,6 @@ bool mbbAvoidObstacles::ProcessTransferFunction()
     const float left_clearance = Clearance(in_next_obstacle_distance_left_edge.Get());
     const float right_clearance = Clearance(in_next_obstacle_distance_right_edge.Get());
 
-    // If the obstacle is directly ahead and both sides are equally clear,
-    // choose the right side deterministically.
     const float preferred_side = right_clearance >= left_clearance ? 1.0f : -1.0f;
     avoidance += preferred_side * kFrontAvoidanceGain * front_threat;
   }
